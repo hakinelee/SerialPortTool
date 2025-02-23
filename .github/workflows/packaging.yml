@@ -1,0 +1,68 @@
+# 工作流名称 
+name: Convert UI and Build 
+ 
+# 触发条件 
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+ 
+# 环境变量设置 
+env:
+  # 设置 Python 版本为 3.9 
+  PYTHON_VERSION: "3.9"
+ 
+# 作业定义 
+jobs:
+  build:
+    # 指定在 Windows 最新版本的虚拟机上运行 
+    runs-on: windows-latest 
+ 
+    # 作业步骤 
+    steps:
+    - name: Checkout repository 
+      # 使用 actions/checkout 动作检出代码仓库 
+      uses: actions/checkout@v2 
+      
+    - name: Set up Python 
+      # 使用 actions/setup-python 动作设置 Python 环境 
+      uses: actions/setup-python@v2 
+      with:
+        # 使用 env 中定义的 Python 版本 
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install dependencies 
+      # 安装依赖项 
+      run: |
+        # 升级 pip 到最新版本 
+        python -m pip install --upgrade pip 
+        # 安装 pyinstaller 和 pyqt5 
+        pip install pyinstaller pyqt5 
+        
+    - name: Convert UI file to PY file 
+      # 将 UI 文件转换为 Python 文件 
+      run: |
+        # 检查是否安装了 pyqt5 
+        if not exist %PYTHONPATH%\Lib\site-packages\PyQt5\QtWidgets.py  (
+          echo "PyQt5 is not installed!"
+          exit 1 
+        )
+        
+        # 执行 UI 转换 
+        python -m PyQt5.uic.pyuic  UI/demo1.ui  -o demo1.py
+        
+    - name: Run PyInstaller 
+      # 使用 PyInstaller 打包 Python 脚本 
+      run: |
+        # 打包命令：将 main.py  打包成一个 exe 文件，并使用自定义图标 
+        pyinstaller -F -w -i icon/favicon.ico --name="SerialPort Tool" main.py
+        
+    - name: Upload built files 
+      # 使用 actions/upload-artifact 动作上传构建产物 
+      uses: actions/upload-artifact@v2 
+      with:
+        # 构建产物的名称 
+        name: exe-files 
+        # 要上传的文件路径（dist 文件夹中的所有 exe 文件）
+        path: dist/*.exe 
