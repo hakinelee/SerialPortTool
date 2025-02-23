@@ -21,3 +21,5 @@ if __name__ == '__main__':
 
     # 运行Qt应用程序，并通过sys.exit()函数确保应用程序在退出时正常结束
     sys.exit(app.exec_())
+
+    # 123
