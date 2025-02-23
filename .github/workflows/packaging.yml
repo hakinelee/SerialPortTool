@@ -32,6 +32,10 @@ jobs:
         # 使用 env 中定义的 Python 版本
         python-version: ${{ env.PYTHON_VERSION }}
 
+    - name: Install Dependencies
+      run: |
+        pip install --user --force-reinstall pyinstaller pyqt5 
+
     - name: Convert UI file to PY file
       # 将 UI 文件转换为 Python 文件
       run: |
