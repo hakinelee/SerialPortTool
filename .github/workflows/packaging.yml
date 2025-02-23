@@ -32,23 +32,9 @@ jobs:
         # 使用 env 中定义的 Python 版本
         python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: Install dependencies
-      # 安装依赖项
-      run: |
-        # 升级 pip 到最新版本 
-        python -m pip install --upgrade pip 
-        # 安装 pyinstaller 和 pyqt5 
-        pip install pyinstaller pyqt5 
-
     - name: Convert UI file to PY file
       # 将 UI 文件转换为 Python 文件
       run: |
-        # 检查是否安装了 pyqt5 
-        if not exist %PYTHONPATH%\Lib\site-packages\PyQt5\QtWidgets.py  (
-          echo "PyQt5 is not installed!"
-          exit 1 
-        )
-        
         # 执行 UI 转换 
         python -m PyQt5.uic.pyuic  UI/demo1.ui  -o demo1.py  
 
