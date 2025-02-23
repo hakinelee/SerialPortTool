@@ -1,5 +1,5 @@
 # 工作流名称 
-name: Convert UI and Build 
+name: Convert UI, Build, and Create Release 
  
 # 触发条件 
 on:
@@ -15,7 +15,7 @@ env:
  
 # 作业定义 
 jobs:
-  build:
+  build-and-release:
     # 指定在 Windows 最新版本的虚拟机上运行 
     runs-on: windows-latest 
  
@@ -50,7 +50,7 @@ jobs:
         )
         
         # 执行 UI 转换 
-        python -m PyQt5.uic.pyuic  UI/demo1.ui  -o demo1.py
+        python -m PyQt5.uic.pyuic  UI/demo1.ui  -o demo1.py  
         
     - name: Run PyInstaller 
       # 使用 PyInstaller 打包 Python 脚本 
@@ -58,11 +58,41 @@ jobs:
         # 打包命令：将 main.py  打包成一个 exe 文件，并使用自定义图标 
         pyinstaller -F -w -i icon/favicon.ico --name="SerialPort Tool" main.py
         
-    - name: Upload built files 
-      # 使用 actions/upload-artifact 动作上传构建产物 
-      uses: actions/upload-artifact@v2 
+    - name: Create GitHub Release 
+      # 创建 GitHub 发布 
+      id: create_release 
+      uses: actions/create-release@v1 
+      env:
+        # 使用 GitHub 提供的 GITHUB_TOKEN 来进行认证 
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        # 构建产物的名称 
-        name: exe-files 
-        # 要上传的文件路径（dist 文件夹中的所有 exe 文件）
+        # 设置发布标签为当前构建编号 
+        tag_name: ${{ github.run_number  }}
+        # 设置发布标题 
+        release_name: Release ${{ github.run_number  }}
+        # 发布内容 
+        body: |
+          **Release Notes:**
+          - Version: ${{ github.run_number  }}
+          - Build Date: ${{ github.run_started_at  }}
+          - Changes:
+            - Added new features 
+            - Fixed bugs 
+            - Improved performance 
+          - Download the latest version from the assets below.
+        # 设置为正式发布（draft 为 false）
+        draft: false 
+        # 设置为非预发布（prerelease 为 false）
+        prerelease: false 
+        
+    - name: Upload built files to Release 
+      # 将构建产物上传到发布的 Assets 中 
+      uses: actions/upload-release-asset@v1 
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url  }}
+        # 上传 dist 文件夹中的所有 exe 文件 
         path: dist/*.exe 
+        # 设置资产名称 
+        name: application-${{ github.run_number  }}.exe 
