@@ -29,12 +29,7 @@ jobs:
         python -c "import PyQt5.QtWidgets; print('PyQt5 installed successfully')"
  
     - name: Convert UI file to PY file 
-      run: |
-        if [ ! -f "$PYTHONPATH/Library/Python/3.9/site-packages/PyQt5/QtWidgets.py"  ]; then 
-          echo "PyQt5 is not installed!"
-          exit 1 
-        fi 
-        
+      run: |        
         python -m PyQt5.uic.pyuic  UI/demo1.ui  -o demo1.py  
  
     - name: Run a multi-line script 
