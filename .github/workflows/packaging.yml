@@ -1,47 +1,47 @@
-# 工作流名称 
-name: Convert UI, Build, and Create Release 
- 
-# 触发条件 
+# 工作流名称
+name: Convert UI, Build, and Create Release
+
+# 触发条件
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
- 
-# 环境变量设置 
+
+# 环境变量设置
 env:
-  # 设置 Python 版本为 3.9 
+  # 设置 Python 版本为 3.9
   PYTHON_VERSION: "3.9"
- 
-# 作业定义 
+
+# 作业定义
 jobs:
   build-and-release:
-    # 指定在 Windows 最新版本的虚拟机上运行 
-    runs-on: windows-latest 
- 
-    # 作业步骤 
+    # 指定在 Windows 最新版本的虚拟机上运行
+    runs-on: windows-latest
+
+    # 作业步骤
     steps:
-    - name: Checkout repository 
-      # 使用 actions/checkout 动作检出代码仓库 
-      uses: actions/checkout@v2 
-      
-    - name: Set up Python 
-      # 使用 actions/setup-python 动作设置 Python 环境 
-      uses: actions/setup-python@v2 
+    - name: Checkout repository
+      # 使用 actions/checkout 动作检出代码仓库
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      # 使用 actions/setup-python 动作设置 Python 环境
+      uses: actions/setup-python@v2
       with:
-        # 使用 env 中定义的 Python 版本 
+        # 使用 env 中定义的 Python 版本
         python-version: ${{ env.PYTHON_VERSION }}
-        
-    - name: Install dependencies 
-      # 安装依赖项 
+
+    - name: Install dependencies
+      # 安装依赖项
       run: |
         # 升级 pip 到最新版本 
         python -m pip install --upgrade pip 
         # 安装 pyinstaller 和 pyqt5 
         pip install pyinstaller pyqt5 
-        
-    - name: Convert UI file to PY file 
-      # 将 UI 文件转换为 Python 文件 
+
+    - name: Convert UI file to PY file
+      # 将 UI 文件转换为 Python 文件
       run: |
         # 检查是否安装了 pyqt5 
         if not exist %PYTHONPATH%\Lib\site-packages\PyQt5\QtWidgets.py  (
@@ -51,27 +51,27 @@ jobs:
         
         # 执行 UI 转换 
         python -m PyQt5.uic.pyuic  UI/demo1.ui  -o demo1.py  
-        
-    - name: Run PyInstaller 
-      # 使用 PyInstaller 打包 Python 脚本 
+
+    - name: Run PyInstaller
+      # 使用 PyInstaller 打包 Python 脚本
       run: |
         # 打包命令：将 main.py  打包成一个 exe 文件，并使用自定义图标 
         pyinstaller -F -w -i icon/favicon.ico --name="SerialPort Tool" main.py
-     
+
     - name: Create Release
-       # 创建 GitHub 发布 
-       id: create_release
-       uses: actions/create-release@v1
-       env:
-         # 使用 GitHub 提供的 GITHUB_TOKEN 来进行认证
-         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-       with:
-         # 设置发布标签为当前构建编号 
-         tag_name: ${{ github.ref }}
-         # 设置发布标题
-         release_name: Release ${{ github.ref }}
-         # 发布内容 
-         body: |
+      # 创建 GitHub 发布
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        # 使用 GitHub 提供的 GITHUB_TOKEN 来进行认证
+       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        # 设置发布标签为当前构建编号
+        tag_name: ${{ github.ref }}
+        # 设置发布标题
+        release_name: Release ${{ github.ref }}
+        # 发布内容
+        body: |
            **Release Notes:**
            - Version: ${{ github.run_number  }}
            - Build Date: ${{ github.run_started_at  }}
@@ -80,23 +80,23 @@ jobs:
              - Fixed bugs 
              - Improved performance 
            - Download the latest version from the assets below.
-         # 设置为正式发布（draft 为 false）
-         draft: false
-         # 设置为非预发布（prerelease 为 false）
-         prerelease: false
-        
-     - name: Upload Release Asset
-       # 将构建产物上传到发布的 Assets 中 
-       id: upload-release-asset
-       uses: actions/upload-release-asset@v1
-       env:
-         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-       with:
-         upload_url: ${{ steps.create_release.outputs.upload_url }}
-         # 上传 dist 文件夹中的所有 exe 文件
-         # asset_path: ${{ github.workspace }}/test2.zip
-         path: dist/*.exe 
-         # 设置资产名称 
-         # asset_name: nainiu_upload.zip
-         name: application-${{ github.run_number  }}.exe 
-         # asset_content_type: application/zip
+        # 设置为正式发布（draft 为 false）
+        draft: false
+        # 设置为非预发布（prerelease 为 false）
+        prerelease: false
+
+    - name: Upload Release Asset
+      # 将构建产物上传到发布的 Assets 中
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        # 上传 dist 文件夹中的所有 exe 文件
+        # asset_path: ${{ github.workspace }}/test2.zip
+        path: dist/*.exe
+        # 设置资产名称
+        # asset_name: nainiu_upload.zip
+        name: application-${{ github.run_number  }}.exe
+        # asset_content_type: application/zip
