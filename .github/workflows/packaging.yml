@@ -18,12 +18,12 @@ jobs:
       uses: actions/setup-python@v2 
       with:
         python-version: "3.9"
- 
-    - name: Install dependencies 
+
+    - name: Install dependencies in virtual environment
       run: |
+        pip install -r requirements.txt 
         python -m pip install --upgrade pip 
-        pip install pyinstaller pyqt5 
- 
+
     - name: Check PyQt5 installation 
       run: |
         python -c "import PyQt5.QtWidgets; print('PyQt5 installed successfully')"
