@@ -57,42 +57,46 @@ jobs:
       run: |
         # 打包命令：将 main.py  打包成一个 exe 文件，并使用自定义图标 
         pyinstaller -F -w -i icon/favicon.ico --name="SerialPort Tool" main.py
+     
+    - name: Create Release
+       # 创建 GitHub 发布 
+       id: create_release
+       uses: actions/create-release@v1
+       env:
+         # 使用 GitHub 提供的 GITHUB_TOKEN 来进行认证
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+       with:
+         # 设置发布标签为当前构建编号 
+         tag_name: ${{ github.ref }}
+         # 设置发布标题
+         release_name: Release ${{ github.ref }}
+         # 发布内容 
+         body: |
+           **Release Notes:**
+           - Version: ${{ github.run_number  }}
+           - Build Date: ${{ github.run_started_at  }}
+           - Changes:
+             - Added new features 
+             - Fixed bugs 
+             - Improved performance 
+           - Download the latest version from the assets below.
+         # 设置为正式发布（draft 为 false）
+         draft: false
+         # 设置为非预发布（prerelease 为 false）
+         prerelease: false
         
-    - name: Create GitHub Release 
-      # 创建 GitHub 发布 
-      id: create_release 
-      uses: actions/create-release@v1 
-      env:
-        # 使用 GitHub 提供的 GITHUB_TOKEN 来进行认证 
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        # 设置发布标签为当前构建编号 
-        tag_name: ${{ github.run_number  }}
-        # 设置发布标题 
-        release_name: Release ${{ github.run_number  }}
-        # 发布内容 
-        body: |
-          **Release Notes:**
-          - Version: ${{ github.run_number  }}
-          - Build Date: ${{ github.run_started_at  }}
-          - Changes:
-            - Added new features 
-            - Fixed bugs 
-            - Improved performance 
-          - Download the latest version from the assets below.
-        # 设置为正式发布（draft 为 false）
-        draft: false 
-        # 设置为非预发布（prerelease 为 false）
-        prerelease: false 
-        
-    - name: Upload built files to Release 
-      # 将构建产物上传到发布的 Assets 中 
-      uses: actions/upload-release-asset@v1 
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url  }}
-        # 上传 dist 文件夹中的所有 exe 文件 
-        path: dist/*.exe 
-        # 设置资产名称 
-        name: application-${{ github.run_number  }}.exe 
+     - name: Upload Release Asset
+       # 将构建产物上传到发布的 Assets 中 
+       id: upload-release-asset
+       uses: actions/upload-release-asset@v1
+       env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+       with:
+         upload_url: ${{ steps.create_release.outputs.upload_url }}
+         # 上传 dist 文件夹中的所有 exe 文件
+         # asset_path: ${{ github.workspace }}/test2.zip
+         path: dist/*.exe 
+         # 设置资产名称 
+         # asset_name: nainiu_upload.zip
+         name: application-${{ github.run_number  }}.exe 
+         # asset_content_type: application/zip
