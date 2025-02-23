@@ -4,9 +4,9 @@ name: Convert UI, Build, and Create Release
 # 触发条件
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
 
 # 环境变量设置
 env:
