@@ -1,62 +1,57 @@
-# 工作流名称
-name: Convert UI, Build, and Create Release
-
-# 触发条件
+name: Convert UI, Build, and Create Release 
+ 
 on:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-
-# 作业定义
+ 
 jobs:
   build-and-release:
-    # 指定在 Linux 最新版本的虚拟机上运行
-    runs-on: ubuntu-latest
-
-    # 作业步骤
+    runs-on: ubuntu-latest 
+ 
     steps:
-    - name: Checkout repository
-      # 使用 actions/checkout 动作检出代码仓库
-      uses: actions/checkout@v2
-
-    - name: Install dependencies
+    - name: Checkout repository 
+      uses: actions/checkout@v2 
+ 
+    - name: Set up Python 
+      uses: actions/setup-python@v2 
+      with:
+        python-version: "3.9"
+ 
+    - name: Install dependencies 
       run: |
         python -m pip install --upgrade pip 
         pip install pyinstaller pyqt5 
-
-    - name: Convert UI file to PY file
-      # 将 UI 文件转换为 Python 文件
+ 
+    - name: Check PyQt5 installation 
       run: |
-        # 检查PyQt5是否安装成功 
-        if (-not (Test-Path -Path "%PYTHONPATH%\Lib\site-packages\PyQt5\QtWidgets.py"))  {
-          Write-Host "PyQt5 is not installed!"
+        python -c "import PyQt5.QtWidgets; print('PyQt5 installed successfully')"
+ 
+    - name: Convert UI file to PY file 
+      run: |
+        if [ ! -f "$PYTHONPATH/Library/Python/3.9/site-packages/PyQt5/QtWidgets.py"  ]; then 
+          echo "PyQt5 is not installed!"
           exit 1 
-        }
+        fi 
         
-        # 执行 UI 转换 
         python -m PyQt5.uic.pyuic  UI/demo1.ui  -o demo1.py  
-
-    - name: Run a multi-line script
+ 
+    - name: Run a multi-line script 
       run: |
-        echo Add other actions to build,
-        echo test, and deploy your project.
-        docker run -v $GITHUB_WORKSPACE:/src cdrx/pyinstaller-windows:latest 'pyinstaller -F --clean -y --dist ./ --workpath -i icon/favicon.ico --name="SerialPort Tool" /tmp main.py'
-        zip -r $GITHUB_WORKSPACE/main.zip $GITHUB_WORKSPACE/main.exe
-
-    - name: Create Release
-      # 创建 GitHub 发布
-      id: create_release
-      uses: actions/create-release@v1
+        echo "Building the application..."
+        docker pull cdrx/pyinstaller-windows:latest 
+        docker run -v $GITHUB_WORKSPACE:/src cdrx/pyinstaller-windows:latest 'pyinstaller -F --clean -y --dist ./ --workpath /tmp --icon icon/favicon.ico  --name="SerialPort Tool" main.py' 
+        zip -r $GITHUB_WORKSPACE/SerialPortTool.zip  $GITHUB_WORKSPACE/dist/main.exe  
+ 
+    - name: Create Release 
+      id: create_release 
+      uses: actions/create-release@v1 
       env:
-        # 使用 GitHub 的 Personal access tokens (classic) ACCESS_TOKEN 来进行认证
-       GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
       with:
-        # 设置发布标签为当前构建编号
-        tag_name: ${{ github.run_number }}
-        # 设置发布标题
-        release_name: Release v${{ github.run_number }}
-        # 发布内容
+        tag_name: "v${{ github.run_number  }}"
+        release_name: "Release v${{ github.run_number  }}"
         body: |
            **Release Notes:**
            - Version: ${{ github.run_number  }}
@@ -66,20 +61,16 @@ jobs:
              - Fixed bugs 
              - Improved performance 
            - Download the latest version from the assets below.
-        # 设置为正式发布（draft 为 false）
-        draft: false
-        # 设置为非预发布（prerelease 为 false）
-        prerelease: false
-
-    - name: Upload Release Asset
-      # 将构建产物上传到发布的 Assets 中
-      id: upload-release-asset
-      uses: actions/upload-release-asset@v1
+        draft: false 
+        prerelease: false 
+ 
+    - name: Upload Release Asset 
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1 
       env:
         GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ github.workspace }}/SerialPortTool.zip
-        # 设置资产名称
-        asset_name: SerialPortTool.zip
-        asset_content_type: application/zip
+        upload_url: ${{ steps.create_release.outputs.upload_url  }}
+        asset_path: ${{ github.workspace  }}/SerialPortTool.zip  
+        asset_name: SerialPortTool.zip  
+        asset_content_type: application/zip 
