@@ -5,6 +5,7 @@
 .idea
 build
 dist
+__pycache__
 *.iml
 out
 gen
