@@ -34,9 +34,7 @@ jobs:
  
     - name: Run a multi-line script 
       run: |
-        echo "Building the application..."
-        docker pull cdrx/pyinstaller-windows:latest 
-        docker run -v $GITHUB_WORKSPACE:/src cdrx/pyinstaller-windows:latest 'pyinstaller -F --clean -y --dist ./ --workpath /tmp --icon icon/favicon.ico  --name="SerialPort Tool" main.py' 
+        pyinstaller -F -w -i icon/favicon.ico --name="SerialPort Tool" main.py
         zip -r $GITHUB_WORKSPACE/SerialPortTool.zip  $GITHUB_WORKSPACE/dist/main.exe  
  
     - name: Create Release 
